@@ -9,6 +9,7 @@ use std::{
 mod comparison;
 mod entities;
 pub mod fsm;
+pub mod math;
 mod parser;
 mod runtime;
 pub mod util;
