@@ -38,7 +38,9 @@
 //! ```
 
 use super::{Controller, PureController};
+use math::interval::Interval;
 use std::f64;
+use std::ops::Bound;
 use std::time::Duration;
 
 /// PID controller implementation
@@ -116,6 +118,20 @@ pub struct PidConfig {
     pub i_max: Option<f64>,
 }
 
+impl PidConfig {
+    pub fn out_range(&self) -> Interval<f64> {
+        let lower_bound = match self.min {
+            Some(min) => Bound::Included(min),
+            None => Bound::Unbounded,
+        };
+        let upper_bound = match self.max {
+            Some(max) => Bound::Included(max),
+            None => Bound::Unbounded,
+        };
+        Interval::new(lower_bound, upper_bound)
+    }
+}
+
 impl Default for PidConfig {
     fn default() -> Self {
         PidConfig {
@@ -170,9 +186,8 @@ impl<'a> PureController<(PidState, f64, &'a Duration), (PidState, f64)> for PidC
 
         state.prev_value = Some(actual);
 
-        let result = state.p + state.i + state.d;
-
-        let result = limit(self.min, self.max, result);
+        let out = state.p + state.i + state.d;
+        let result = self.out_range().clamp(out);
 
         (state, result)
     }
@@ -210,20 +225,6 @@ impl From<DurationInSeconds> for f64 {
     fn from(from: DurationInSeconds) -> Self {
         from.seconds()
     }
-}
-
-fn limit(min: Option<f64>, max: Option<f64>, mut value: f64) -> f64 {
-    if let Some(max) = max {
-        if value > max {
-            value = max;
-        }
-    }
-    if let Some(min) = min {
-        if value < min {
-            value = min;
-        }
-    }
-    value
 }
 
 #[cfg(test)]

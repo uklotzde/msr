@@ -12,7 +12,6 @@ pub mod fsm;
 pub mod math;
 mod parser;
 mod runtime;
-pub mod util;
 mod value;
 
 pub use self::{comparison::*, entities::*, runtime::*, value::*};

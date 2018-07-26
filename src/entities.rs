@@ -1,6 +1,9 @@
 use super::*;
 use std::time::Duration;
 
+use super::math::interval;
+use super::math::*;
+
 /// I/O (sensor or actuator)
 ///
 /// # Example
@@ -38,8 +41,12 @@ pub struct ValueMapping {
 }
 
 impl ValueMapping {
-    pub fn map(&self, x: f64) -> f64 {
-        util::map_value(x, self.from.low, self.from.high, self.to.low, self.to.high)
+    pub fn map(&self, x: f64) -> Option<f64> {
+        project_linear_1d(
+            x,
+            interval::Interval::closed(self.from.low, self.from.high),
+            interval::Interval::closed(self.to.low, self.to.high),
+        )
     }
 }
 
@@ -146,8 +153,8 @@ mod tests {
                 high: 100.0,
             },
         };
-        assert_eq!(map.map(4.0), 0.0);
-        assert_eq!(map.map(12.0), 50.0);
-        assert_eq!(map.map(20.0), 100.0);
+        assert_eq!(map.map(4.0), Some(0.0));
+        assert_eq!(map.map(12.0), Some(50.0));
+        assert_eq!(map.map(20.0), Some(100.0));
     }
 }
